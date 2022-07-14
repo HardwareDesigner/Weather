@@ -22,6 +22,8 @@ class ConnectError(Exception):
 
 class DHT22:
     def __init__(self):
+        self.answer = None
+        self.tmp = None
         self.data = []
         self.channel = 22
 
@@ -43,6 +45,7 @@ class DHT22:
 
     def get(self):
         tmp = []
+        out = ''
         for i in range(40):  # 循环40次，接收温湿度数据
             a = time.time()
             while GPIO.input(self.channel) == 0:  # 一直循环至输入为高电平
@@ -62,10 +65,17 @@ class DHT22:
                         break
             else:
                 tmp.append(0)  # 记录接收到的bit为0
-        return tmp
+        for i in tmp:
+            out += str(i)
+        self.tmp = out
+        return out
 
     def response(self):
-        pass
+        self.answer = [int(self.tmp[i: i + 8], 2) for i in range(0, 40, 8)]
+        return self.answer
 
     def check(self):
-        pass
+        if self.answer[0] + self.answer[1] + self.answer[2] + self.answer[3] == self.answer[4]:
+            return True
+        else:
+            return False
